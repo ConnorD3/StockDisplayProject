@@ -1,0 +1,381 @@
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+import requests
+import json
+import mysql.connector
+import webbrowser
+
+
+
+        
+style = """
+        QWidget{background: #E5F3FF
+        }
+        QPushButton{background: #1A0C00;
+        color: #FFFFFF
+        }
+        """
+altStyle = """
+        QWidget{background: #1A0C00
+        }
+        QPushButton{background: #FFFFFF
+        }
+        QLabel{
+        color: #FFFFFF
+        }
+        QTableWidget{gridline-color: #E5F3FF;
+        color: #E5F3FF
+                                }
+        """
+class EmailForm(QWidget):
+    
+
+
+    #Main Form for on startup
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('Email Registry')
+        self.resize(1000, 240)
+        
+        
+
+        layout = QGridLayout(self)#Layout allows widgets to be positioned on window
+        centerLayout = QVBoxLayout()
+        layout.addLayout(centerLayout, 1,1, alignment=Qt.AlignCenter)
+        self.setLayout(layout)
+
+        label_email = QLabel('<font size="10"> Email </font>')
+        layout.addWidget(label_email,0,1,alignment=Qt.AlignCenter)
+        self.lineEdit_Email = QLineEdit()
+        self.lineEdit_Email.setPlaceholderText('Enter email here')
+        centerLayout.addWidget(self.lineEdit_Email,Qt.AlignCenter)
+        label_email.setAlignment(Qt.AlignRight)
+        self.button_enter = QPushButton ('Enter')
+        layout.addWidget(self.button_enter, 2, 1, Qt.AlignCenter)
+        self.button_enter.clicked.connect(self.validate_Email)
+        
+        
+    
+            
+    def setEmail(self, emailVal):
+        emailVal = self.lineEdit_Email.text()
+        return emailVal
+    def validate_Email(self):
+        # Will validate that entry is an email in final version
+        msg = QMessageBox()
+        regexp = QRegularExpression("^(?!\.)(?!.*\.\.)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$")
+        input_Validator =  QRegularExpressionValidator(regexp, self.lineEdit_Email)
+        self.lineEdit_Email.setValidator(input_Validator)
+        db_connection= mysql.connector.connect(host = "DESKTOP-CAJUD0S",port = "3306", user = "root", password = "root123", database = "usermanagementsys")
+        curs = db_connection.cursor()
+        if self.lineEdit_Email.hasAcceptableInput():
+                msg.setText("Successfully entered email.")
+                msg.exec_()
+                sql = "INSERT INTO stocklist.users (email) VALUES (%s)"
+                val = (self.lineEdit_Email.text())
+                curs.execute(sql, (val,))
+                db_connection.commit()
+                
+                db_connection.close()
+                self.stocks = stockList()
+                self.close()
+                self.stocks.showMaximized()
+                print(curs.rowcount, "record inserted.")
+                
+                
+            
+        else:
+                msg.setText("Not a valid email. Please try again.")
+                msg.exec_()
+                self.lineEdit_Email.setText("")
+class conInfo(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet(style)
+        self.setWindowTitle('Contact Info')
+        self.setGeometry(1000, 680, 1000, 680)
+        layout = QGridLayout(self)
+        rightLayout = QVBoxLayout()
+        conLabel = QLabel('<font size="10"> Contact Info </font>')
+        conText = QLabel('<font size="8"> Phone: 555-555-5151 <br> '
+        'Email: stockDisplayers@email.com </font>')
+        layout.addWidget(conLabel, 0,3, alignment=Qt.AlignRight)
+        layout.addWidget(conText, 2,3, alignment=Qt.AlignCenter)
+        bottomLayout = QVBoxLayout()
+        layout.addLayout(bottomLayout, 4, 4, alignment=Qt.AlignCenter)
+        layout.addLayout(rightLayout, 0, 4, alignment=Qt.AlignRight)
+        tog1 = QPushButton('Light/Dark Mode')
+        tog1.setGeometry(200, 150, 100, 40)
+        tog1.setCheckable(True)
+        togCon = QPushButton('Contact Info')
+        togCon.setGeometry(200, 150, 100, 40)
+        togCon.setCheckable(True)
+        togFaq = QPushButton('FAQs')
+        togFaq.setGeometry(200, 150, 100, 40)
+        togFaq.setCheckable(True)
+        togStocks = QPushButton('Stocks')
+        togStocks.setGeometry(200, 150, 100, 40)
+        togStocks.setCheckable(True)
+        #tog1.setStyleSheet("background: #1A0C00")
+        rightLayout.addWidget(tog1)
+        bottomLayout.addWidget(togCon)
+        bottomLayout.addWidget(togFaq)
+        bottomLayout.addWidget(togStocks)
+        togCon.clicked.connect(self.conView)
+        togFaq.clicked.connect(self.faqView)
+        togStocks.clicked.connect(self.stockView)
+        def changeTheme():
+            #method to control dark/light mode button
+            if tog1.isChecked():
+                self.setStyleSheet(altStyle)
+                
+            else: self.setStyleSheet(style)
+        tog1.clicked.connect(changeTheme)
+        
+    def stockView(self):
+        #method that opens stock page after entering email 
+        self.stocks = stockList()
+        self.close()
+        self.stocks.showMaximized()
+    def conView(self):
+        #method that opens stock page after entering email 
+        self.cont = conInfo()
+        self.close()
+        self.cont.showMaximized()
+    def faqView(self):
+        #method that opens stock page after entering email 
+        self.faqs = FAQPage()
+        self.close()
+        self.faqs.showMaximized()
+class FAQPage(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet(style)
+        self.setWindowTitle('Frequently asked questions')
+        self.setGeometry(1000, 680, 1000, 680)
+        layout = QGridLayout(self)
+        faqLabel = QLabel('<font size="10"> Frequently Asked Questions </font>')
+        faqText = QLabel('<font size="8"><strong> How can I view more info on the stocks?: </strong><br> '
+        'You can click the stock item of your choice in the list and you will be redirected to the related<br> webpage containing all the relevant information. <br>'
+        '<strong> How do I add a stock to my favourites?: </strong> <br>'
+        'You can click the checkbox on next to the stock you want to add to favourites, and it will be<br> displayed in the favourite table. <br>'
+        '<strong> Where can I ask any further questions?: </strong> <br>'
+        'Please direct any questions you might have through the avenues listed on our contacts page. </font>')
+        layout.addWidget(faqLabel, 0,1, alignment=Qt.AlignCenter)
+        layout.addWidget(faqText, 1,1, alignment=Qt.AlignCenter)
+        bottomLayout = QVBoxLayout()
+        rightLayout = QVBoxLayout()
+        layout.addLayout(bottomLayout, 4, 2, alignment=Qt.AlignCenter)
+        layout.addLayout(rightLayout, 0, 4, alignment=Qt.AlignLeft)
+        
+        tog1 = QPushButton('Light/Dark Mode')
+        tog1.setGeometry(200, 150, 100, 40)
+        tog1.setCheckable(True)
+        togCon = QPushButton('Contact Info')
+        togCon.setGeometry(200, 150, 100, 40)
+        togCon.setCheckable(True)
+        togFaq = QPushButton('FAQs')
+        togFaq.setGeometry(200, 150, 100, 40)
+        togFaq.setCheckable(True)
+        togStocks = QPushButton('Stocks')
+        togStocks.setGeometry(200, 150, 100, 40)
+        togStocks.setCheckable(True)
+        #tog1.setStyleSheet("background: #1A0C00")
+        rightLayout.addWidget(tog1)
+        bottomLayout.addWidget(togCon)
+        bottomLayout.addWidget(togFaq)
+        bottomLayout.addWidget(togStocks)
+        togCon.clicked.connect(self.conView)
+        togFaq.clicked.connect(self.faqView)
+        togStocks.clicked.connect(self.stockView)
+        def changeTheme():
+            #method to control dark/light mode button
+            if tog1.isChecked():
+                self.setStyleSheet(altStyle)
+                
+            else: self.setStyleSheet(style)
+        tog1.clicked.connect(changeTheme)
+        
+    def stockView(self):
+        #method that opens stock page after entering email 
+        self.stocks = stockList()
+        self.close()
+        self.stocks.showMaximized()
+    def conView(self):
+        #method that opens stock page after entering email 
+        self.cont = conInfo()
+        self.close()
+        self.cont.showMaximized()
+    def faqView(self):
+        #method that opens stock page after entering email 
+        self.faqs = FAQPage()
+        self.close()
+        self.faqs.showMaximized()
+    
+class stockList(QWidget):
+    #stock list page class
+    def __init__(self):
+        super().__init__()
+        #a = form
+        #emailVal = a.setEmail()
+       # print(emailVal)
+        self.setStyleSheet(style)
+        self.setWindowTitle('Stocks')
+        self.setGeometry(1000, 680, 1000, 680)
+        layout = QGridLayout(self)
+        rightLayout = QVBoxLayout()
+        centerLayout = QVBoxLayout()
+        bottomLayout = QVBoxLayout()
+        layout.addLayout(bottomLayout, 4, 1, alignment=Qt.AlignCenter)
+        layout.addLayout(rightLayout, 0, 3, alignment=Qt.AlignLeft)
+        layout.addLayout(centerLayout, 1,0, alignment=Qt.AlignCenter)
+        centerLayout2 = QVBoxLayout()
+        layout.addLayout(centerLayout2, 2,0, alignment=Qt.AlignCenter)
+        self.setLayout(layout)
+        stockLabel = QLabel('<font size="10"> Top 50 Performing Stocks </font>')
+        layout.addWidget(stockLabel, 0,0, alignment=Qt.AlignCenter)
+        table_widget = QTableWidget()
+        favTable = QTableWidget()
+        centerLayout2.addWidget(table_widget)
+        centerLayout.addWidget(favTable)
+        # Below sets up table columns
+        favTable.setColumnCount(6)
+        favTable.setMaximumWidth(800)
+        favTable.setMaximumHeight(250)
+        favTable.setColumnWidth(0,50)
+        favTable.setColumnWidth(1,150)
+        favTable.setColumnWidth(2,150)
+        favTable.setColumnWidth(3,150)
+        favTable.setColumnWidth(4,150)
+        favTable.setColumnWidth(5,150)
+        table_widget.setColumnCount(7)
+        table_widget.setMaximumWidth(900)
+        table_widget.setMaximumHeight(500)
+        table_widget.setColumnWidth(0,50)
+        table_widget.setColumnWidth(1,150)
+        table_widget.setColumnWidth(2,150)
+        table_widget.setColumnWidth(3,150)
+        table_widget.setColumnWidth(4,150)
+        table_widget.setColumnWidth(5,150)
+        table_widget.setColumnWidth(6,50)
+        tog1 = QPushButton('Light/Dark Mode')
+        tog1.setGeometry(200, 150, 100, 40)
+        tog1.setCheckable(True)
+        togCon = QPushButton('Contact Info')
+        togCon.setGeometry(200, 150, 100, 40)
+        togCon.setCheckable(True)
+        togFaq = QPushButton('FAQs')
+        togFaq.setGeometry(200, 150, 100, 40)
+        togFaq.setCheckable(True)
+        togStocks = QPushButton('Stocks')
+        togStocks.setGeometry(200, 150, 100, 40)
+        togStocks.setCheckable(True)
+        togCon.clicked.connect(self.conView)
+        togFaq.clicked.connect(self.faqView)
+        togStocks.clicked.connect(self.stockView)
+        
+        #tog1.setStyleSheet("background: #1A0C00")
+        rightLayout.addWidget(tog1)
+        bottomLayout.addWidget(togCon)
+        bottomLayout.addWidget(togFaq)
+        bottomLayout.addWidget(togStocks)
+        table_widget.setHorizontalHeaderLabels(['Rank','Stock Ticker', '1 Day Change(%)', '7 Day Change(%)', 'Trade Volume', 'Current Price', 'Add Fav'])
+        favTable.setHorizontalHeaderLabels(['Rank','Stock Ticker', '1 Day Change(%)', '7 Day Change(%)', 'Trade Volume', 'Current Price'])
+        url = "https://app-money.tmx.com/graphql"
+        query = {"operationName":"getStockListSymbolsWithQuote","variables":{"stockListId":"TOP_PRICE_PERFORMER","locale":"en"},"query":"query getStockListSymbolsWithQuote($stockListId: String!, $locale: String) {\n  stockList: getStockListSymbolsWithQuote(\n    stockListId: $stockListId\n    locale: $locale\n  ) {\n    stockListId\n    name\n    description\n    longDescription\n    metricTitle\n    listItems {\n      symbol\n      longName\n      rank\n      metric\n      price\n      priceChange\n      percentChange\n      volume\n      __typename\n    }\n    totalPriceChange\n    totalPercentChange\n    createdAt\n    updatedAt\n    __typename\n  }\n}"}
+        response = requests.post(url, json=query)
+        json_data = json.loads(response.text)
+        sets = json_data['data']['stockList']['listItems']
+        index = 0
+        table_widget.setRowCount(50)
+        table_widget.currentRow() == 0
+        row = table_widget.currentRow()
+        table_widget.setSortingEnabled(False)
+        
+        def OpenLink(row, col):
+            if col != 6:
+                print(row, col)
+                linkText = QTableWidget.item(table_widget, row, 1).text()
+                print(linkText)
+                webbrowser.open("https://money.tmx.com/quote/"+linkText)
+            else:
+                print("Click did not link")
+        table_widget.cellClicked.connect(OpenLink)
+    
+  
+        while index < 50:
+    
+            arr1 = [sets[index]['rank'],
+            sets[index]['symbol'],
+            round(sets[index]['percentChange'],2),
+            round((float(sets[index]['metric'])/(sets[index]['price']))*100,2),
+            sets[index]['volume'],
+            sets[index]['price']]
+            arr2 = [str(arr1[0]),str(arr1[1]),str(arr1[2]),
+                    str(arr1[3]),'$'+str(arr1[4]),'$'+str(arr1[5]),]
+            #print(arr2)
+            chkBox = QTableWidgetItem()
+            chkBox.setFlags(Qt.ItemIsUserCheckable| Qt.ItemIsEnabled)
+            chkBox.setCheckState(Qt.Unchecked) 
+            if row < 50:
+                row = row + 1
+                table_widget.setItem(row, 0, 
+                QTableWidgetItem(arr2[0]))
+                table_widget.setItem(row, 1, 
+                QTableWidgetItem(str(arr2[1])))
+                table_widget.setItem(row, 2, 
+                QTableWidgetItem(arr2[2]))
+                table_widget.setItem(row, 3, 
+                QTableWidgetItem(arr2[3]))
+                table_widget.setItem(row, 4, 
+                QTableWidgetItem(arr2[4]))
+                table_widget.setItem(row, 5, 
+                QTableWidgetItem(arr2[5]))
+                table_widget.setItem(row, 6, 
+                QTableWidgetItem(chkBox))
+                
+            index = index + 1
+        def changeTheme():
+            #method to control dark/light mode button
+            if tog1.isChecked():
+                self.setStyleSheet(altStyle)
+                
+            else: self.setStyleSheet(style)
+
+        tog1.clicked.connect(changeTheme)
+    def stockView(self):
+        #method that opens stock page after entering email 
+        self.stocks = stockList()
+        self.close()
+        self.stocks.showMaximized()
+    def conView(self):
+        #method that opens stock page after entering email 
+        self.cont = conInfo()
+        self.close()
+        self.cont.showMaximized()
+    def faqView(self):
+        #method that opens stock page after entering email 
+        self.faqs = FAQPage()
+        self.close()
+        self.faqs.showMaximized()
+            
+                        
+        
+if __name__ == '__main__':
+    #conditional statement launches window until escape is issued
+    app = QApplication(sys.argv)
+    style = """
+        QWidget{background: #E5F3FF
+        }
+        QPushButton{background: #1A0C00;
+        color: #FFFFFF
+        }
+        """
+        
+    form = EmailForm()
+    form.setStyleSheet(style)
+    form.show()
+
+    sys.exit(app.exec_())
